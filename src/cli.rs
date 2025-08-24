@@ -29,7 +29,7 @@ pub struct CliArgs {
     #[arg(
         short = 'c',
         long = "copy-single-chapter-instead-of-rename",
-        default_value = "false"
+        default_value = "true"
     )]
     pub copy_single_chapter_instead_of_renaming: bool,
 }
