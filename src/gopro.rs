@@ -47,13 +47,19 @@ impl std::fmt::Display for GoProChapteredVideoFile {
 }
 
 pub fn parse_gopro_file(path: PathBuf) -> Result<GoProChapteredVideoFile, Error> {
-    // println!("\n\nParsing file: {:?}", path);
+    println!("\n\nParsing file: {:?}", path);
     let filename = path.as_path().file_name().unwrap().to_str().unwrap();
     if path.is_dir() {
         return Err(Error::new(
             std::io::ErrorKind::InvalidData,
             format!("{} is a directory", filename),
         ));
+    }
+    if filename == ".DS_Store" {
+        return Err(Error::new(
+            std::io::ErrorKind::InvalidData,
+            format!("{} is a .DS_Store file", filename),
+        ))
     }
     let extension = path
         .as_path()

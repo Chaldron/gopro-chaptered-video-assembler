@@ -1,4 +1,4 @@
-#![feature(path_file_prefix)]
+// #![feature(path_file_prefix)]
 
 mod cli;
 mod filesystem;
