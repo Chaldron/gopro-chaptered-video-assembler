@@ -3,6 +3,7 @@ use std::{path::PathBuf, process};
 use colored::Colorize;
 use log::{error, info};
 use normpath::PathExt;
+use regex::Regex;
 // use predicates::path;
 
 use crate::gopro::GoProChapteredVideoFile;
@@ -20,8 +21,17 @@ pub fn combine_multichapter_videos(
     for video in multichapter_videos_sorted {
         let number = video.0;
         let mut paths_to_chapters = Vec::<PathBuf>::new();
+        if video.1.len() == 0 {
+            info!("{}", "No chapters to combine".blue().bold());
+            return;
+        }
+        let first_chapter_filename = video.1[0].abs_path.file_name().unwrap().to_str().unwrap();
+        info!(
+            "First chapter filename: {}",
+            first_chapter_filename.blue().bold()
+        );
         // TODO: Accumulate the chapters into a vec, then pass to mp4-merge
-        for chapter in video.1 {
+        for chapter in video.1.clone() {
             paths_to_chapters.push(chapter.abs_path.clone());
             info!(
                 "Concatenating chapter {:?} of video {}...",
@@ -29,9 +39,11 @@ pub fn combine_multichapter_videos(
                 number
             );
         }
-        let output_filename = generate_merged_chaptered_video_output_file_name(&output_dir, number);
+        let output_filename =
+            generate_merged_chaptered_video_output_file_name(&output_dir, first_chapter_filename);
+        info!("Writing to {}", output_filename.display());
         mp4_merge::join_files(&paths_to_chapters, &output_filename, |progress| {
-            println!("Merging... {:.2}%", progress * 100.0);
+            info!("Merging... {:.2}%", progress * 100.0);
         })
         .unwrap();
     }
@@ -39,7 +51,7 @@ pub fn combine_multichapter_videos(
 
 fn generate_merged_chaptered_video_output_file_name(
     output_dir: &PathBuf,
-    video_number: u16,
+    first_chapter_filename: &str,
 ) -> PathBuf {
     let mut output_file_name = match PathBuf::from(output_dir.clone()).normalize() {
         Ok(path) => path,
@@ -48,8 +60,23 @@ fn generate_merged_chaptered_video_output_file_name(
             process::exit(1);
         }
     };
-    output_file_name.push(format!("GoPro_{}", video_number.to_string()));
+
+    output_file_name.push(format!(
+        "{}",
+        add_m_to_gopro_video_prefix(first_chapter_filename)
+    ));
     let mut output_file_name = output_file_name.as_path().to_path_buf();
-    output_file_name.set_extension("mp4");
+    output_file_name.set_extension("MP4");
+    if output_file_name.exists() {
+        error!("Output file already exists: {}", output_file_name.display());
+        process::exit(1);
+    }
     output_file_name
+}
+
+fn add_m_to_gopro_video_prefix(first_chapter_filename: &str) -> String {
+    let re = Regex::new(r"^G(.)").unwrap();
+    let replacement_string = r"G${1}M";
+    let result = re.replace(first_chapter_filename, replacement_string);
+    result.to_string()
 }

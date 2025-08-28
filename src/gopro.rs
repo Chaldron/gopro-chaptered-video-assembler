@@ -24,7 +24,7 @@ use std::collections::HashMap;
 use std::io::Error;
 use std::path::PathBuf;
 
-use log::warn;
+use log::{info, warn};
 
 /// This struct represents a chaptered GoPro video file (what the camera writes to disk)
 #[derive(Debug, Clone)]
@@ -47,7 +47,7 @@ impl std::fmt::Display for GoProChapteredVideoFile {
 }
 
 pub fn parse_gopro_file(path: PathBuf) -> Result<GoProChapteredVideoFile, Error> {
-    println!("\n\nParsing file: {:?}", path);
+    info!("Parsing file: {}", path.display());
     let filename = path.as_path().file_name().unwrap().to_str().unwrap();
     if path.is_dir() {
         return Err(Error::new(
@@ -59,7 +59,7 @@ pub fn parse_gopro_file(path: PathBuf) -> Result<GoProChapteredVideoFile, Error>
         return Err(Error::new(
             std::io::ErrorKind::InvalidData,
             format!("{} is a .DS_Store file", filename),
-        ))
+        ));
     }
     let extension = path
         .as_path()

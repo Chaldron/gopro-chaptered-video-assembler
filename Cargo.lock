@@ -336,6 +336,7 @@ dependencies = [
  "mp4-merge",
  "normpath",
  "predicates",
+ "regex",
  "simplelog",
  "uuid",
  "xdg",
