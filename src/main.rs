@@ -86,10 +86,10 @@ fn actually_do_things_with_input_and_output_paths(input_dir: PathBuf, args: CliA
     combine_multichapter_videos(multichapter_videos_sorted.clone(), output_dir.clone());
 
     if args.copy_single_chapter_instead_of_renaming {
-        print!("Copying single chapter videos instead of renaming");
+        println!("Copying single chapter videos instead of renaming");
         copy_single_chapter_videos(single_chapter_videos, output_dir, args.clone());
     } else {
-        print!("Renaming single chapter videos");
+        println!("Renaming single chapter videos");
         rename_single_chapter_videos(single_chapter_videos, output_dir, args.clone());
     }
 
@@ -107,9 +107,9 @@ fn rename_single_chapter_videos(
     args: CliArgs,
 ) {
     for video in single_chapter_videos {
-        let video_number = video.0;
         let video_path = video.1[0].abs_path.clone();
-        let output_path = gen_output_path(&output_dir, video_number, "mp4");
+        let original_filename = video.1[0].abs_path.file_name().unwrap().to_str().unwrap();
+        let output_path = gen_output_path(&output_dir, original_filename);
         info!(
             "Renaming {} to {}",
             video_path.to_string_lossy().green().bold(),
@@ -130,9 +130,9 @@ fn copy_single_chapter_videos(
     args: CliArgs,
 ) {
     for video in single_chapter_videos {
-        let video_number = video.0;
         let video_path = video.1[0].abs_path.clone();
-        let output_path = gen_output_path(&output_dir, video_number, "mp4");
+        let original_filename = video.1[0].abs_path.file_name().unwrap().to_str().unwrap();
+        let output_path = gen_output_path(&output_dir, original_filename);
         info!(
             "Copying {} to {}",
             video_path.to_string_lossy().green().bold(),
