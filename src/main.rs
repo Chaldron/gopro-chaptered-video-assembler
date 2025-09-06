@@ -109,9 +109,9 @@ fn rename_single_chapter_videos(
     args: CliArgs,
 ) {
     for video in single_chapter_videos {
-        let video_number = video.0;
         let video_path = video.1[0].abs_path.clone();
-        let output_path = gen_output_path(&output_dir, video_number, "MP4");
+        let original_filename = video.1[0].abs_path.file_name().unwrap().to_str().unwrap();
+        let output_path = gen_output_path(&output_dir, original_filename);
         info!(
             "Renaming {} to {}",
             video_path.to_string_lossy().green().bold(),
@@ -132,9 +132,9 @@ fn copy_single_chapter_videos(
     args: CliArgs,
 ) {
     for video in single_chapter_videos {
-        let video_number = video.0;
         let video_path = video.1[0].abs_path.clone();
-        let output_path = gen_output_path(&output_dir, video_number, "MP4");
+        let original_filename = video.1[0].abs_path.file_name().unwrap().to_str().unwrap();
+        let output_path = gen_output_path(&output_dir, original_filename);
         info!(
             "Copying {} to {}",
             video_path.to_string_lossy().green().bold(),

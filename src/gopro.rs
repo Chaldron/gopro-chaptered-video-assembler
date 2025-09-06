@@ -20,11 +20,13 @@
 //                  ...
 // Chaptered videos require concatenation of... all chapters
 
-use std::collections::HashMap;
+use crate::multichapter_merging::add_m_to_gopro_video_prefix;
+
 use std::io::Error;
 use std::path::PathBuf;
+use std::{collections::HashMap, process};
 
-use log::{info, warn};
+use log::{error, info, warn};
 
 /// This struct represents a chaptered GoPro video file (what the camera writes to disk)
 #[derive(Debug, Clone)]
@@ -149,10 +151,17 @@ pub fn sort_gopro_files(
     video_number_to_subvideos_mapping
 }
 
-// Assumes output_dir is a normalized directory path. Adds GoPro_{}.EXTENSION to the end of the path.
-pub fn gen_output_path(output_dir: &PathBuf, video_number: u16, extension: &str) -> PathBuf {
+// Assumes output_dir is a normalized directory path
+pub fn gen_output_path(output_dir: &PathBuf, original_filename: &str) -> PathBuf {
     let mut output_path = PathBuf::from(output_dir);
-    output_path.push(format!("GoPro_{}", video_number));
-    output_path.set_extension(extension);
+    output_path.push(format!(
+        "{}",
+        add_m_to_gopro_video_prefix(original_filename)
+    ));
+    output_path.set_extension("MP4");
+    if output_path.exists() {
+        error!("Output file already exists: {}", output_path.display());
+        process::exit(1);
+    }
     output_path
 }

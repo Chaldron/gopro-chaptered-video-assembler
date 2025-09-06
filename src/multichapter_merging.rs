@@ -74,7 +74,7 @@ fn generate_merged_chaptered_video_output_file_name(
     output_file_name
 }
 
-fn add_m_to_gopro_video_prefix(first_chapter_filename: &str) -> String {
+pub fn add_m_to_gopro_video_prefix(first_chapter_filename: &str) -> String {
     let re = Regex::new(r"^G(.)").unwrap();
     let replacement_string = r"G${1}M";
     let result = re.replace(first_chapter_filename, replacement_string);
