@@ -32,4 +32,8 @@ pub struct CliArgs {
         default_value = "false"
     )]
     pub copy_single_chapter_instead_of_renaming: bool,
+
+    /// Overwrite output files if they already exist. By default, existing output files are skipped.
+    #[arg(short = 'f', long = "overwrite", default_value = "false")]
+    pub overwrite: bool,
 }

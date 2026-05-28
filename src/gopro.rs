@@ -24,9 +24,9 @@ use crate::multichapter_merging::add_m_to_gopro_video_prefix;
 
 use std::io::Error;
 use std::path::PathBuf;
-use std::{collections::HashMap, process};
+use std::collections::HashMap;
 
-use log::{error, info, warn};
+use log::{info, warn};
 
 /// This struct represents a chaptered GoPro video file (what the camera writes to disk)
 #[derive(Debug, Clone)]
@@ -152,8 +152,14 @@ pub fn sort_gopro_files(
     video_number_to_subvideos_mapping
 }
 
-// Assumes output_dir is a normalized directory path
-pub fn gen_output_path(output_dir: &PathBuf, original_filename: &str) -> PathBuf {
+// Assumes output_dir is a normalized directory path.
+// Returns None if the output file already exists and `overwrite` is false,
+// signalling that the file should be skipped.
+pub fn gen_output_path(
+    output_dir: &PathBuf,
+    original_filename: &str,
+    overwrite: bool,
+) -> Option<PathBuf> {
     let mut output_path = PathBuf::from(output_dir);
     output_path.push(format!(
         "{}",
@@ -161,8 +167,12 @@ pub fn gen_output_path(output_dir: &PathBuf, original_filename: &str) -> PathBuf
     ));
     output_path.set_extension("MP4");
     if output_path.exists() {
-        error!("Output file already exists: {}", output_path.display());
-        process::exit(1);
+        if overwrite {
+            warn!("Output file already exists, overwriting: {}", output_path.display());
+        } else {
+            warn!("Output file already exists, skipping: {}", output_path.display());
+            return None;
+        }
     }
-    output_path
+    Some(output_path)
 }

@@ -1,7 +1,7 @@
 use std::{path::PathBuf, process};
 
 use colored::Colorize;
-use log::{error, info};
+use log::{error, info, warn};
 use normpath::PathExt;
 use regex::Regex;
 // use predicates::path;
@@ -12,6 +12,7 @@ use crate::gopro::GoProChapteredVideoFile;
 pub fn combine_multichapter_videos(
     multichapter_videos_sorted: std::collections::HashMap<u16, Vec<GoProChapteredVideoFile>>,
     output_dir: PathBuf,
+    overwrite: bool,
 ) {
     if multichapter_videos_sorted.len() == 0 {
         info!("{}", "No multichapter videos to combine".blue().bold());
@@ -39,8 +40,14 @@ pub fn combine_multichapter_videos(
                 number
             );
         }
-        let output_filename =
-            generate_merged_chaptered_video_output_file_name(&output_dir, first_chapter_filename);
+        let output_filename = match generate_merged_chaptered_video_output_file_name(
+            &output_dir,
+            first_chapter_filename,
+            overwrite,
+        ) {
+            Some(path) => path,
+            None => continue,
+        };
         info!("Writing to {}", output_filename.display());
         mp4_merge::join_files(&paths_to_chapters, &output_filename, |progress| {
             info!("Merging... {:.2}%", progress * 100.0);
@@ -49,10 +56,13 @@ pub fn combine_multichapter_videos(
     }
 }
 
+// Returns None if the output file already exists and `overwrite` is false,
+// signalling that the merge should be skipped.
 fn generate_merged_chaptered_video_output_file_name(
     output_dir: &PathBuf,
     first_chapter_filename: &str,
-) -> PathBuf {
+    overwrite: bool,
+) -> Option<PathBuf> {
     let mut output_file_name = match PathBuf::from(output_dir.clone()).normalize() {
         Ok(path) => path,
         Err(e) => {
@@ -68,10 +78,20 @@ fn generate_merged_chaptered_video_output_file_name(
     let mut output_file_name = output_file_name.as_path().to_path_buf();
     output_file_name.set_extension("MP4");
     if output_file_name.exists() {
-        error!("Output file already exists: {}", output_file_name.display());
-        process::exit(1);
+        if overwrite {
+            warn!(
+                "Output file already exists, overwriting: {}",
+                output_file_name.display()
+            );
+        } else {
+            warn!(
+                "Output file already exists, skipping: {}",
+                output_file_name.display()
+            );
+            return None;
+        }
     }
-    output_file_name
+    Some(output_file_name)
 }
 
 pub fn add_m_to_gopro_video_prefix(first_chapter_filename: &str) -> String {
